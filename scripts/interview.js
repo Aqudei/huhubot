@@ -4,8 +4,6 @@ let _ = require("lodash");
 let current_question = 0;
 let current_user = null;
 
-
-
 let user_list = ['aqudei'];
 let answers = [];
 
@@ -51,6 +49,8 @@ module.exports = (robot) => {
     robot.hear(/start interview/, res => {
 
         index = 0;
+        answers = [];
+
         //aqudei_only = res.envelope.user.id
         //robot.messageRoom(, 'personal eto');
         res.send('Ok i will...');
@@ -80,12 +80,20 @@ module.exports = (robot) => {
     robot.hear(/.*/, res => {
 
         qa = _.findLast(answers, a => a.userId === res.message.user.id);
-        
+
         console.log('Existing');
         console.log(qa);
-        
+
         if (qa) {
+
             qa.answer = res.message.text;
+
+            if (qa.questionId == 0) {
+                if (res.message.text.endsWith('A')) {
+                    res.reply('Your answers will be anonymous.');
+                }
+            }
+
             newQa = {
                 userId: qa.userId,
                 userName: qa.userName,
@@ -96,9 +104,21 @@ module.exports = (robot) => {
 
             console.log('New Q');
             console.log(newQa);
-            
+
             answers.push(newQa);
+
+            if (newQa.questionId === questions.length - 1) {
+                qa_first = _.find(answers, a => a.userId === res.message.user.id);
+                if (qa_first) {
+                    if (qa_first.answer.endsWith('A')) {
+                        res.reply("You've specified A meaning your responses will be submitted anonymously.");
+                    }
+                }
+            }
+
             res.reply(newQa.questionBody);
+
+
         }
     });
 
