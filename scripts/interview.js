@@ -1,10 +1,17 @@
 let WebClient = require("@slack/client").WebClient
+let rqst = require("request");
 let _ = require("lodash");
 
 let current_question = 0;
 let current_user = null;
 
+
+
+// USER LIST
+// aqudei will be interviewed
 let user_list = ['aqudei'];
+
+
 let answers = [];
 
 let questions = [
@@ -48,12 +55,24 @@ module.exports = (robot) => {
 
     robot.hear(/start interview/, res => {
 
+        // Fetch user names like this
+
+        // fetch('https://getusernameslist.com/users').then((response) => {
+        //     user_list = response.users;
+
+
+        // }).catch(error => {
+        //     console.error(error);
+        // });
+
         index = 0;
         answers = [];
 
         //aqudei_only = res.envelope.user.id
         //robot.messageRoom(, 'personal eto');
+
         res.send('Ok i will...');
+
         user_list.forEach(element => {
             unameToId(web, element, id => {
                 if (id) {
@@ -94,6 +113,18 @@ module.exports = (robot) => {
                 }
             }
 
+            // qa here will be contain the question and the answer of the user,
+            // it will have property userId, userName, questionId, questionBody, answer
+            // This is the one that will be push to the server
+
+            // rqst({
+            //     url: 'https://post.endpoint.com',
+            //     method: 'POST',
+            //     json: { qa: qa }
+            // }, (err, resp, body) => {
+
+            // });
+
             newQa = {
                 userId: qa.userId,
                 userName: qa.userName,
@@ -117,7 +148,6 @@ module.exports = (robot) => {
             }
 
             res.reply(newQa.questionBody);
-
 
         }
     });
