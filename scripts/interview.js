@@ -1,9 +1,7 @@
-let WebClient = require("@slack/client").WebClient;
+var WebClient = require("@slack/client").WebClient;
 var HubotCron = require("hubot-cronjob");
-let Request = require("request");
-let _ = require("lodash");
-
-
+var Request = require("request");
+var _ = require("lodash");
 
 let questions = [
     'please give me a number between 1-10 (add A after number to be anonymous example: 2A)',
@@ -11,8 +9,12 @@ let questions = [
     'please fill out this survey for: https://www.peteranswers.com/',
 ]
 
-// Run every  minute
+// Run every  minute (for testing)
 const pattern = '* * * * *';
+
+// run daily at 12 noon
+//const pattern = '0 12 * * *';
+
 const timezone = 'Europe/Prague';
 
 module.exports = (robot) => {
