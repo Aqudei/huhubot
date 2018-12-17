@@ -84,15 +84,14 @@ module.exports = (robot) => {
 
     robot.hear(/.*/, res => {
 
-        qa = _.findLast(answers, a => a.userId === res.message.user.id);
+        let qa = _.findLast(answers, a => a.userId === res.message.user.id);
 
         if (!qa) {
             res.reply('No question was asked yet.');
             return;
         }
 
-        if (qa.answer) {
-            res.reply('All question for you were already answered.');
+        if (qa.answer !== null) {
             return;
         }
 
@@ -116,19 +115,9 @@ module.exports = (robot) => {
 
         // });
 
-        
+        let questionIndex = qa.questionId + 1;
 
-        newQa = {
-            userId: qa.userId,
-            userName: qa.userName,
-            questionId: qa.questionId + 1,
-            questionBody: questions[qa.questionId + 1],
-            answer: ''
-        };
-
-        answers.push(newQa);
-
-        if (newQa.questionId === questions.length - 1) {
+        if (questionIndex === questions.length - 1) {
             qa_first = _.find(answers, a => a.userId === res.message.user.id);
             if (qa_first) {
                 if (qa_first.answer.endsWith('A')) {
@@ -137,8 +126,22 @@ module.exports = (robot) => {
             }
         }
 
-        res.reply(newQa.questionBody);
+        if (questionIndex >= questions.length) {
+            res.reply("Go back to work now :). You answered all questions for you already. Thanks.");
+            return;
+        }
 
+        let newQa = {
+            userId: qa.userId,
+            userName: qa.userName,
+            questionId: questionIndex,
+            questionBody: questions[questionIndex],
+            answer: ''
+        };
+
+        answers.push(newQa);
+
+        res.reply(newQa.questionBody);
     });
 
     new HubotCron(pattern, timezone, startInterview);
