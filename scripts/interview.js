@@ -60,7 +60,7 @@ module.exports = (robot) => {
                         userName: element,
                         questionId: 0,
                         questionBody: questions[0],
-                        answer: ''
+                        answer: null
                     };
 
                     answers.push(qa);
@@ -86,56 +86,59 @@ module.exports = (robot) => {
 
         qa = _.findLast(answers, a => a.userId === res.message.user.id);
 
-        console.log('Existing');
-        console.log(qa);
-
-        if (qa) {
-
-            qa.answer = res.message.text;
-
-            if (qa.questionId == 0) {
-                if (res.message.text.endsWith('A')) {
-                    res.reply('Your answers will be anonymous.');
-                }
-            }
-
-            // qa here will be contain the question and the answer of the user,
-            // it will have property userId, userName, questionId, questionBody, answer
-            // This is the one that will be push to the server
-
-            // rqst({
-            //     url: 'https://post.endpoint.com',
-            //     method: 'POST',
-            //     json: { qa: qa }
-            // }, (err, resp, body) => {
-
-            // });
-
-            newQa = {
-                userId: qa.userId,
-                userName: qa.userName,
-                questionId: qa.questionId + 1,
-                questionBody: questions[qa.questionId + 1],
-                answer: ''
-            };
-
-            console.log('New Q');
-            console.log(newQa);
-
-            answers.push(newQa);
-
-            if (newQa.questionId === questions.length - 1) {
-                qa_first = _.find(answers, a => a.userId === res.message.user.id);
-                if (qa_first) {
-                    if (qa_first.answer.endsWith('A')) {
-                        res.reply("You've specified A meaning your responses will be submitted anonymously.");
-                    }
-                }
-            }
-
-            res.reply(newQa.questionBody);
-
+        if (!qa) {
+            res.reply('No question was asked yet.');
+            return;
         }
+
+        if (qa.answer) {
+            res.reply('All question for you were already answered.');
+            return;
+        }
+
+        qa.answer = res.message.text;
+
+        if (qa.questionId == 0) {
+            if (res.message.text.endsWith('A')) {
+                res.reply('Your answers will be anonymous.');
+            }
+        }
+
+        // qa here will contain the recently answered question of the user,
+        // it will have property userId, userName, questionId, questionBody, answer
+        // This is the one that will be push to the server
+
+        // rqst({
+        //     url: 'https://post.endpoint.com',
+        //     method: 'POST',
+        //     json: { qa: qa }
+        // }, (err, resp, body) => {
+
+        // });
+
+        
+
+        newQa = {
+            userId: qa.userId,
+            userName: qa.userName,
+            questionId: qa.questionId + 1,
+            questionBody: questions[qa.questionId + 1],
+            answer: ''
+        };
+
+        answers.push(newQa);
+
+        if (newQa.questionId === questions.length - 1) {
+            qa_first = _.find(answers, a => a.userId === res.message.user.id);
+            if (qa_first) {
+                if (qa_first.answer.endsWith('A')) {
+                    res.reply("You've specified A meaning your responses will be submitted anonymously.");
+                }
+            }
+        }
+
+        res.reply(newQa.questionBody);
+
     });
 
     new HubotCron(pattern, timezone, startInterview);
