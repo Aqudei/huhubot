@@ -1,18 +1,9 @@
-let WebClient = require("@slack/client").WebClient
-let rqst = require("request");
+let WebClient = require("@slack/client").WebClient;
+var HubotCron = require("hubot-cronjob");
+let Request = require("request");
 let _ = require("lodash");
 
-let current_question = 0;
-let current_user = null;
 
-
-
-// USER LIST
-// aqudei will be interviewed
-let user_list = ['aqudei'];
-
-
-let answers = [];
 
 let questions = [
     'please give me a number between 1-10 (add A after number to be anonymous example: 2A)',
@@ -20,41 +11,31 @@ let questions = [
     'please fill out this survey for: https://www.peteranswers.com/',
 ]
 
-
-unameToId = (web, username, cb) => {
-    web.users.list().then((response) => {
-        user = response.members.find((user) => user.name === username);
-        userId = user.id;
-        cb(userId);
-    }).catch((error) => {
-        console.error(error);
-        cb(null);
-    });
-};
+// Run every  minute
+const pattern = '* * * * *';
+const timezone = 'Europe/Prague';
 
 module.exports = (robot) => {
+    // USER LIST
+    // aqudei will be interviewed
+    let user_list = ['aqudei'];
+
+    let answers = [];
 
     let web = new WebClient(robot.adapter.options.token);
 
-    robot.hear(/list channels/i, (res) => {
+    let unameToId = (username, cb) => {
         web.users.list().then((response) => {
-            console.log(response);
+            user = response.members.find((user) => user.name === username);
+            userId = user.id;
+            cb(userId);
         }).catch((error) => {
             console.error(error);
+            cb(null);
         });
-    });
+    };
 
-
-    robot.hear(/test/i, (res) => {
-        web.api.test().then(() => {
-            res.send("Your connection to the Slack API is working!");
-        }).catch(() => {
-            res.send("Your connection to the Slack API failed :(");
-        });
-    });
-
-    robot.hear(/start interview/, res => {
-
+    let startInterview = () => {
         // Fetch user names like this
 
         // fetch('https://getusernameslist.com/users').then((response) => {
@@ -68,13 +49,8 @@ module.exports = (robot) => {
         index = 0;
         answers = [];
 
-        //aqudei_only = res.envelope.user.id
-        //robot.messageRoom(, 'personal eto');
-
-        res.send('Ok i will...');
-
         user_list.forEach(element => {
-            unameToId(web, element, id => {
+            unameToId(element, id => {
                 if (id) {
 
                     qa = {
@@ -93,6 +69,14 @@ module.exports = (robot) => {
                     console.log('Skipping user: <' + element + '>. No such slack user found');
                 }
             });
+        });
+    };
+
+    robot.hear(/test/i, (res) => {
+        web.api.test().then(() => {
+            res.send("Your connection to the Slack API is working!");
+        }).catch(() => {
+            res.send("Your connection to the Slack API failed :(");
         });
     });
 
@@ -152,4 +136,5 @@ module.exports = (robot) => {
         }
     });
 
+    new HubotCron(pattern, timezone, startInterview);
 };
